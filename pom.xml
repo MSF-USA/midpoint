@@ -216,7 +216,7 @@
         <cxf-xjc.version>3.3.1</cxf-xjc.version>
         <wss4j.version>2.3.3</wss4j.version>
         <opendj.version>2.6.2</opendj.version>
-        <quartz.version>2.3.2.e3</quartz.version>
+        <quartz.version>2.5.0</quartz.version>
         <opensaml.version>4.1.1</opensaml.version>
         <cache2k.version>2.0.0.Final</cache2k.version>
         <testng.version>7.8.0</testng.version>
@@ -236,7 +236,7 @@
         <xmlsec.version>2.2.6</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
         <connid.version>1.6.0.0-RC1</connid.version>
-        <derby.version>10.16.1.1</derby.version>
+        <derby.version>10.17.1.0</derby.version>
         <poi.version>5.2.3</poi.version>
         <!-- Version for classgraph must the one declared in Prism -->
         <classgraph.version>4.8.162</classgraph.version>
@@ -252,7 +252,7 @@
         <j2html.version>1.4.0</j2html.version>
         <bouncycastle.version>1.78</bouncycastle.version>
         <javax.persistence.version>2.2</javax.persistence.version>
-        <keycloak.version>25.0.5</keycloak.version>
+        <keycloak.version>26.0.6</keycloak.version>
 
         <maven.api.version>3.8.5</maven.api.version>
         <!-- With M6 we get [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1,
