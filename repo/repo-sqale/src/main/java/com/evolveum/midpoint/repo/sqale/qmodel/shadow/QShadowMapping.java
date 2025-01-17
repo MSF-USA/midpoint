@@ -246,8 +246,8 @@ public class QShadowMapping
     @Override
     public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(
             Collection<SelectorOptions<GetOperationOptions>> options,
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
-        List<SelectorOptions<GetOperationOptions>> ret = new ArrayList<>(super.updateGetOptions(options, modifications));
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications, boolean forceReindex) {
+        List<SelectorOptions<GetOperationOptions>> ret = new ArrayList<>(super.updateGetOptions(options, modifications, forceReindex));
 
         if (modifications.stream().anyMatch(m -> F_ATTRIBUTES.isSubPath(m.getPath()))) {
             ret.addAll(SchemaService.get().getOperationOptionsBuilder().item(F_ATTRIBUTES).retrieve().build());
@@ -310,5 +310,31 @@ public class QShadowMapping
     @Override
     public ShadowPartitionManager getPartitionManager() {
         return partitionManager;
+    }
+
+    @Override
+    public void preprocessCacheableUris(ShadowType shadow) {
+        //QShadowReferenceAttributeMapping.get().preprocessCacheableUris();
+        processCacheableUri(shadow.getObjectClass());
+        var activation = shadow.getActivation();
+        if (activation != null) {
+            processCacheableUri(activation.getDisableReason());
+        }
+        var refAttrsBean = shadow.getReferenceAttributes();
+        if (refAttrsBean == null) {
+            return;
+        }
+        PrismContainerValue<?> refAttrs = refAttrsBean.asPrismContainerValue();
+        for (var item : refAttrs.getItems()) {
+            var name = item.getElementName();
+            if (item instanceof PrismReference ref) {
+                Integer pathId = null;
+                for (var val : ref.getValues()) {
+                    if (pathId == null) {
+                        pathId = repositoryContext().processCacheableUri(name);
+                    }
+                }
+            }
+        }
     }
 }

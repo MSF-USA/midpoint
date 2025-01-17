@@ -19,8 +19,11 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.authorization.EndPointsUrlMapping;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.web.component.util.*;
@@ -189,6 +192,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import org.springframework.util.AntPathMatcher;
 
 /**
  * Utility class containing miscellaneous methods used mostly in Wicket
@@ -717,7 +722,25 @@ public final class WebComponentUtil {
         for (AuthorizationAction action : actions) {
             actionUris.add(action.actionUri());
         }
+
+        //fix for #10336. EndPointsUrlMapping also is used in auth-impl module to evaluate the authorization
+        Url[] pageUrl = descriptor.urls();
+        for (Url url : pageUrl) {
+            EndPointsUrlMapping endPointsUrlMapping = findEndPointsUrlMappingByUrl(url.matchUrlForSecurity());
+            if (endPointsUrlMapping != null) {
+                Arrays.stream(endPointsUrlMapping.getAction())
+                        .forEach(action -> actionUris.add(action.getValue()));
+            }
+        }
         return isAuthorized(actionUris);
+    }
+
+    private static EndPointsUrlMapping findEndPointsUrlMappingByUrl(String url) {
+        AntPathMatcher matcher = new AntPathMatcher();
+        return Arrays.stream(EndPointsUrlMapping.values())
+                .filter(e -> matcher.match(e.getUrl(), url))
+                .findFirst()
+                .orElse(null);
     }
 
     public static boolean isCertItemsMenusEnabled(ModelServiceLocator serviceLocator) {
@@ -3840,6 +3863,11 @@ public final class WebComponentUtil {
             try {
                 Panel panel = ConstructorUtils.invokeConstructor(panelClass, markupId, objectDetailsModels.getObjectWrapperModel(), panelConfig);
                 panel.setOutputMarkupId(true);
+
+                var isHistoricalData = objectDetailsModels instanceof FocusDetailsModels<?>
+                        && ((FocusDetailsModels<?>) objectDetailsModels).isHistoricalObject();
+                ((AbstractAssignmentTypePanel) panel).setHistoricalData(isHistoricalData);
+
                 return panel;
             } catch (Throwable e) {
                 LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
